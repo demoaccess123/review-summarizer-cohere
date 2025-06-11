@@ -1,0 +1,4 @@
+streamlit
+cohere
+requests
+google-play-scraper
