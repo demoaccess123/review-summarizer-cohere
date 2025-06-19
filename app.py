@@ -1,39 +1,87 @@
 import streamlit as st
-from google_play_scraper import Sort, reviews
+from google_play_scraper import reviews
 import cohere
 
-# Setup
+# === Your Cohere API Key ===
 COHERE_API_KEY = "4ynfZPaAfQD4L4z6NEwJSWoBlIDltTVMmPtgFeAP"
-client = cohere.Client(COHERE_API_KEY)
+co = cohere.Client(COHERE_API_KEY)
 
-def fetch_reviews(app_id, num_reviews=100):
-    result, _ = reviews(
-        app_id,
-        lang='en',
-        country='us',
-        sort=Sort.NEWEST,
-        count=num_reviews
-    )
-    return [r['content'] for r in result]
+# === Example app list ===
+APP_LIST = {
+    "Facebook": "com.facebook.katana",
+    "Instagram": "com.instagram.android",
+    "WhatsApp": "com.whatsapp",
+    "Snapchat": "com.snapchat.android",
+    "YouTube": "com.google.android.youtube",
+    "Spotify": "com.spotify.music",
+    "Netflix": "com.netflix.mediaclient",
+    "Twitter": "com.twitter.android",
+    "LinkedIn": "com.linkedin.android",
+    "Amazon Shopping": "com.amazon.mShop.android.shopping",
+    # 👉 Add more if you like
+}
 
-def summarize_reviews(reviews_list):
-    joined_reviews = "\n".join(reviews_list[:100])
-    response = client.summarize(text=joined_reviews)
-    return response.summary
+st.set_page_config(page_title="Play Store Review Insights", layout="wide")
+st.title("📱 Google Play Review Insights")
 
-# Streamlit UI
-st.title("📱 App Review Summarizer")
-app_id = st.text_input("Enter Google Play App ID (e.g. com.whatsapp)")
+# --- Search box with suggestions ---
+search_query = st.text_input("🔍 Search for an app by name")
 
-if st.button("Summarize"):
-    if app_id.strip() == "":
-        st.warning("Please enter a valid app ID.")
-    else:
-        with st.spinner("Fetching and summarizing reviews..."):
-            try:
-                reviews_list = fetch_reviews(app_id)
-                summary = summarize_reviews(reviews_list)
-                st.subheader("Summary")
-                st.write(summary)
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
+matches = [name for name in APP_LIST.keys() if search_query.lower() in name.lower()]
+selected_app = st.selectbox("Select App", matches) if matches else None
+
+if st.button("Generate Insights") and selected_app:
+    app_id = APP_LIST[selected_app]
+    st.info(f"Fetching reviews for **{selected_app}** (ID: {app_id})...")
+
+    result, _ = reviews(app_id, lang='en', country='us', count=100)
+    review_texts = [r["content"] for r in result]
+
+    joined_reviews = "\n".join(review_texts)
+
+    with st.spinner("🔄 Generating insights using Cohere..."):
+        # --- Summary ---
+        summary_response = co.summarize(
+            text=joined_reviews,
+            model='summarize-xlarge',
+            length='medium',
+            format='paragraph'
+        ).summary
+
+        # --- Positive Reviews ---
+        pos_response = co.generate(
+            model='command',
+            prompt=f"Extract 5 positive customer comments from the following reviews:\n{joined_reviews}",
+            max_tokens=300
+        ).generations[0].text.strip()
+
+        # --- Negative Reviews ---
+        neg_response = co.generate(
+            model='command',
+            prompt=f"Extract 5 negative customer comments from the following reviews:\n{joined_reviews}",
+            max_tokens=300
+        ).generations[0].text.strip()
+
+        # --- Customer Pain Points (bulleted) ---
+        pain_response = co.generate(
+            model='command',
+            prompt=f"List the top customer pain points in bullet points from the following reviews:\n{joined_reviews}",
+            max_tokens=300
+        ).generations[0].text.strip()
+
+    # --- Layout ---
+    st.subheader("📝 Summary")
+    st.success(summary_response)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("👍 Positive Reviews")
+        st.info(pos_response)
+
+    with col2:
+        st.subheader("👎 Negative Reviews")
+        st.warning(neg_response)
+
+    st.subheader("⚡ Customer Pain Points")
+    st.error(pain_response)
