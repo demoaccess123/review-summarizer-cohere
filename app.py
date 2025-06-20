@@ -3,6 +3,31 @@ from google_play_scraper import reviews
 import cohere
 import json
 
+# --- Custom CSS ---
+st.markdown("""
+    <style>
+    body {
+        background-color: #f5f7fa;
+    }
+    .main {
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    h1, h2, h3 {
+        color: #333333;
+    }
+    .stButton>button {
+        background-color: #4CAF50;
+        color: white;
+    }
+    .stButton>button:hover {
+        background-color: #45a049;
+        color: white;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # === Your Cohere API Key ===
 COHERE_API_KEY = "4ynfZPaAfQD4L4z6NEwJSWoBlIDltTVMmPtgFeAP"
 co = cohere.Client(COHERE_API_KEY)
@@ -74,3 +99,30 @@ if st.button("Generate Insights") and selected_app:
 
     st.subheader("⚡ Customer Pain Points")
     st.error(pain_response)
+
+
+# --- After generating insights ---
+
+# Combine into one text
+download_text = f"""
+📌 **Summary**
+{summary_response}
+
+👍 **Positive Reviews**
+{pos_response}
+
+👎 **Negative Reviews**
+{neg_response}
+
+⚡ **Customer Pain Points**
+{pain_response}
+"""
+
+# Download as .txt
+st.download_button(
+    label="💾 Download Insights",
+    data=download_text,
+    file_name=f"{selected_app}_insights.txt",
+    mime="text/plain"
+)
+
