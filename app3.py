@@ -21,18 +21,19 @@ with open("apps_200.json") as f:
 st.markdown("""
     <style>
     body {
-        background: #f5f7fa;
+        background: #121212;
+        color: #f5f5f5;
         font-family: 'Helvetica Neue', sans-serif;
     }
     .hero {
-        background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)),
+        background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
                     url('https://images.unsplash.com/photo-1581090700227-4c4f50b12731?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80');
         background-size: cover;
         background-position: center;
         border-radius: 10px;
         padding: 100px 30px;
         text-align: center;
-        color: white;
+        color: #ffffff;
     }
     .hero h1 {
         font-size: 3em;
@@ -57,10 +58,15 @@ st.markdown("""
         font-weight: bold;
     }
     .card {
-        background: white;
+        background: #ffffff;
+        color: #333333;
         padding: 30px;
         border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .insights {
+        margin-top: 50px;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -119,6 +125,7 @@ if st.button("✨ Generate Insights") and selected_app:
         ).generations[0].text.strip()
 
     # === Display in Beautiful Cards ===
+    st.markdown('<div class="insights">', unsafe_allow_html=True)
     st.markdown("## 📊 Insights")
 
     st.markdown(f"""
@@ -152,6 +159,8 @@ if st.button("✨ Generate Insights") and selected_app:
             <p>{pain_points}</p>
         </div>
     """, unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # === Download Button ===
     download_text = f"""
