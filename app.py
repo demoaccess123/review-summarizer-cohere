@@ -1,25 +1,14 @@
 import streamlit as st
 from google_play_scraper import reviews
 import cohere
+import json
 
 # === Your Cohere API Key ===
 COHERE_API_KEY = "4ynfZPaAfQD4L4z6NEwJSWoBlIDltTVMmPtgFeAP"
 co = cohere.Client(COHERE_API_KEY)
 
-# === Example app list ===
-APP_LIST = {
-    "Facebook": "com.facebook.katana",
-    "Instagram": "com.instagram.android",
-    "WhatsApp": "com.whatsapp",
-    "Snapchat": "com.snapchat.android",
-    "YouTube": "com.google.android.youtube",
-    "Spotify": "com.spotify.music",
-    "Netflix": "com.netflix.mediaclient",
-    "Twitter": "com.twitter.android",
-    "LinkedIn": "com.linkedin.android",
-    "Amazon Shopping": "com.amazon.mShop.android.shopping",
-    # 👉 Add more if you like
-}
+with open("apps_200.json") as f:
+    APP_LIST = json.load(f)
 
 st.set_page_config(page_title="Play Store Review Insights", layout="wide")
 st.title("📱 Google Play Review Insights")
